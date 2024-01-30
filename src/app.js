@@ -9,6 +9,9 @@ import messagesRouter from "./routes/messagesRoutes.js";
 import { ProductMongoManager } from "./dao/managerDB/ProductMongoManager.js";
 import { MessageMongoManager } from "./dao/managerDB/MessageMongoManager.js";
 import viewRoutes from './routes/viewsRoutes.js'
+import MongoStore from "connect-mongo";
+import session from "express-session";
+import sessionRoutes from "./routes/session.routes.js";
 
 const PORT = 8080;
 const app = express();
@@ -23,7 +26,15 @@ app.use(express.json())
 app.use(express.urlencoded({ extended: true}))
 app.use(express.static('public'))
 
-mongoose.connect("mongodb+srv://lucianomorandi:Pilar2805@coderhouse.lupycvz.mongodb.net/coder")
+app.use(session({
+  secret: 'C0d3rh0us3',
+  store: MongoStore.create({
+      mongoUrl: 'mongodb+srv://lucianomorandi:Pilar2805@coderhouse.lupycvz.mongodb.net/coder'
+  }),
+  resave: true,
+  saveUninitialized: true
+}));
+mongoose.connect('mongodb+srv://lucianomorandi:Pilar2805@coderhouse.lupycvz.mongodb.net/coder');
 
 const hbs = handlebars.create({
   runtimeOptions: {
@@ -34,9 +45,9 @@ const hbs = handlebars.create({
 app.engine('handlebars',hbs.engine) 
 app.set('views','src/views')
 app.set('view engine', 'handlebars')
-app.use('/', viewRoutes)
 
-
+app.use('/api/session', sessionRoutes);
+app.use('/', viewRoutes);
 app.use('/api/products', productRouter)
 app.use('/api/carts', cartRouter)
 app.use('/api/messages', messagesRouter)

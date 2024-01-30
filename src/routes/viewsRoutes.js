@@ -1,25 +1,26 @@
 import express from "express"
 //import { ProductManager } from "../dao/managerFS/ProductManager.js";
 import { ProductMongoManager } from "../dao/managerDB/ProductMongoManager.js"
+import { checkAuth, checkingExistingUser } from "../middlewares/auth.js"
 
 const viewRoutes = express.Router()
 //const path="./src/json/productos.json"
 //const productManager = new ProductManager(path);
 const productManager=new ProductMongoManager()
 
-
-viewRoutes.get("/", async (req, res) => {
+viewRoutes.get("/", checkAuth, async (req, res) => {
+  const {user} = req.session;
   const resultado = await productManager.getProducts()
 
   if (resultado.message==="OK")
-    res.render("home", { title: "Home", data: resultado.rdo })
-})
+    res.render("home", user);
+});
 
 viewRoutes.get("/realtimeproducts", async (req, res) => {
   const resultado = await productManager.getProducts();
   if (resultado.message==="OK")
     res.render("realtimeproducts", { title: "RealTime Products", data: resultado.rdo })
-})
+});
 
 viewRoutes.get('/products', async (req, res) => {
   const {page} = req.query;
@@ -30,6 +31,14 @@ viewRoutes.get('/products', async (req, res) => {
 
 viewRoutes.get('/chat', async (req, res)=>{
   res.render('chat')
-})
+});
+
+viewRoutes.get('/login', checkingExistingUser, (req, res) => {
+  res.render('login');
+});
+
+viewRoutes.get('/register', checkingExistingUser, (req, res) => {
+  res.render('register');
+});
 
 export default viewRoutes
